@@ -1,0 +1,25 @@
+1)PROCEDURE:
+This procedure selects all distinct status values from the Transactions table and counts the number of occurrences of each status.
+Then it loops through each result and prints the status and count using the DBMS_OUTPUT.PUT_LINE function.
+
+2)FUNCTION:
+This function takes a table name as input and returns the number of records in that table.
+It uses dynamic SQL to construct a SELECT statement that counts the number of rows in the specified table,
+and then executes that statement and stores the result in a variable named record_count.
+
+3)PROCEDURE with SQL%ROWCOUNT:
+In this procedure, we update the price of a product with the given product ID to the new price provided as input parameter.
+After the update statement, we use SQL%ROWCOUNT to determine the number of rows affected by the update and display
+the result using DBMS_OUTPUT.PUT_LINE.
+
+4)Add user-defined exception which disallows to enter title of item (e.g. book) to be less than 5 characters:
+In this code, we first define a constant c_min_title_length which holds the minimum allowed length for a title.
+We then define the exception e_title_too_short. 
+Inside the procedure, we check if the length of the p_name parameter is less than the minimum allowed length. 
+If it is, we raise the e_title_too_short exception.
+If the length of the title is valid, we proceed with the insertion of the product into the Products table. 
+If an exception is raised, we catch it and output an error message indicating that the title is too short.
+
+5)Trigger:
+This trigger will fire after every insert operation on the "Cancelled" table, and for each row that is inserted, 
+it will update the status of the corresponding transaction in the "transactions" table to "Cancelled".
