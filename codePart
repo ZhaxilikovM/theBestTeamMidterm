@@ -1,0 +1,103 @@
+PROCEDURE:
+1)CREATE OR REPLACE PROCEDURE group_transactions_by_status
+IS
+BEGIN
+  FOR status_rec IN (SELECT status, COUNT(*) AS count
+                     FROM Transactions
+                     GROUP BY status)
+  LOOP
+    DBMS_OUTPUT.PUT_LINE('Status: ' || status_rec.status || ', Count: ' || status_rec.count);
+  END LOOP;
+END;
+BEGIN
+  group_transactions_by_status;
+END;
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+2)FUNCTION:
+CREATE OR REPLACE FUNCTION count_records(table_name IN VARCHAR2)
+RETURN NUMBER
+IS
+    record_count NUMBER;
+BEGIN
+    EXECUTE IMMEDIATE 'SELECT COUNT(*) FROM ' || table_name INTO record_count;
+    RETURN record_count;
+END;
+DECLARE
+    num_records NUMBER;
+BEGIN
+    num_records := count_records('Buyers');
+    DBMS_OUTPUT.PUT_LINE('Number of records in Buyers table: ' || num_records);
+END;
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+3)PROCEDURE with SQL%ROWCOUNT:
+CREATE OR REPLACE PROCEDURE update_product_price (p_product_id IN INT, p_new_price IN DECIMAL)
+IS
+BEGIN
+  UPDATE Products
+  SET price = p_new_price
+  WHERE product_id = p_product_id;
+  
+  DBMS_OUTPUT.PUT_LINE(SQL%ROWCOUNT || ' rows updated.');
+END;
+DECLARE
+  v_product_id INT := 123;
+  v_new_price DECIMAL := 99.99; 
+BEGIN
+  update_product_price(v_product_id, v_new_price);
+END;
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+4)Add user-defined exception which disallows to enter title of item (e.g. book) to be less than 5 characters:
+CREATE OR REPLACE PROCEDURE add_product (
+    p_product_id IN INT,
+    p_brand_id IN INT,
+    p_name IN VARCHAR2,
+    p_description IN VARCHAR2,
+    p_price IN DECIMAL,
+    p_size IN VARCHAR2,
+    p_color IN VARCHAR2,
+    p_gender IN VARCHAR2
+)
+IS
+    c_min_title_length CONSTANT INT := 5;
+    e_title_too_short EXCEPTION;
+BEGIN
+    IF LENGTH(p_description) < c_min_title_length THEN
+        RAISE e_title_too_short;
+    END IF;
+
+    INSERT INTO Products (product_id, brand_id, name, description, price, sizes, color, gender)
+    VALUES (p_product_id, p_brand_id, p_name, p_description, p_price, p_size, p_color, p_gender);
+
+    DBMS_OUTPUT.PUT_LINE('Product added successfully');
+EXCEPTION
+    WHEN e_title_too_short THEN
+        DBMS_OUTPUT.PUT_LINE('Error: Title must be at least ' || c_min_title_length || ' characters long');
+END;
+BEGIN
+    add_product(4, 4, 'Tommy Hilfiger', 'Tommy Hilfiger is an American brand of men's, women's and children's clothing,
+                 underwear, shoes, accessories and perfumes.', 50000, 'Medium', 'Black', 'Male');
+END;
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+5)Trigger:
+CREATE OR REPLACE TRIGGER update_transaction_status
+AFTER INSERT ON cancelled
+FOR EACH ROW
+BEGIN
+  UPDATE transactions
+  SET status = 'Cancelled'
+  WHERE transaction_id = :NEW.transaction_id;
+END;
+
+INSERT INTO Cancellations (cancellation_id, transaction_id, reason) VALUES (5, 4, 'did not like');
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
